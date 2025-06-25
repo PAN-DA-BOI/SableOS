@@ -18,43 +18,47 @@ def todo_list():
     for widget in main.winfo_children():
         widget.destroy()
 
-    # Create a Listbox for the todo items
-    todo_listbox = tk.Listbox(main)
-    todo_listbox.config(bg=colors[2], fg="#000")
-    todo_listbox.place(x=7, y=112, width=1000, height=460)
+    frame = tk.Frame(master=main)
+    frame.config(bg=colors[2])
+    frame.place(x=11, y=80, width=841, height=466)
 
-    # Create an Entry widget for new todo items
-    entry = tk.Entry(main)
+    check_box = tk.Checkbutton(master=frame, text="Checkbox")
+    check_box.config(bg=colors[1], fg="#000")
+
+
+
+    check_box.select()
+    check_box.place(x=32, y=39, width=120, height=30)
+
+    entry = tk.Entry(master=main)
     entry.config(bg=colors[2], fg="#000")
-    entry.place(x=43, y=49, width=300, height=40)
+    entry.place(x=867, y=29, width=121, height=40)
 
-    # Function to add a new todo item
-    def add_todo():
-        new_todo = entry.get()
-        if new_todo:
-            todo_listbox.insert(tk.END, new_todo)
-            entry.delete(0, tk.END)
+    button = tk.Button(master=main, text="Add concept")
+    button.config(bg=colors[1], fg="#000")
+    button.place(x=870, y=85, width=115, height=80)
 
-    # Function to delete the selected todo item
-    def delete_todo():
-        try:
-            index = todo_listbox.curselection()
-            todo_listbox.delete(index)
-        except:
-            pass
+    button1 = tk.Button(master=main, text="Daily Routine")
+    button1.config(bg=colors[1], fg="#000")
+    button1.place(x=870, y=394, width=115, height=80)
 
-    # Create buttons for adding, deleting, and going back
-    add_button = tk.Button(main, text="Add Todo", command=add_todo)
-    add_button.config(bg=colors[1], fg="#000")
-    add_button.place(x=810, y=10, width=200, height=50)
+    button2 = tk.Button(master=main, text="Back")
+    button2.config(bg=colors[1], fg="#000")
+    button2.place(x=870, y=496, width=115, height=80)
 
-    delete_button = tk.Button(main, text="Delete Todo", command=delete_todo)
-    delete_button.config(bg=colors[1], fg="#000")
-    delete_button.place(x=810, y=70, width=200, height=50)
+    button3 = tk.Button(master=main, text="add task")
+    button3.config(bg=colors[1], fg="#000")
+    button3.place(x=870, y=303, width=115, height=80)
 
-    back_button = tk.Button(main, text="Back", command=show_main_menu)
-    back_button.config(bg=colors[1], fg="#000")
-    back_button.place(x=595, y=10, width=200, height=100)
+    entry1 = tk.Entry(master=main)
+    entry1.config(bg=colors[2], fg="#000")
+    entry1.place(x=867, y=245, width=121, height=40)
+
+    option_menu_options = ["option 1"]
+    option_menu_var = tk.StringVar(value="Select option")
+    option_menu = tk.OptionMenu(main, option_menu_var, *option_menu_options)
+    option_menu.config(bg=colors[1], fg="#000")
+    option_menu.place(x=874, y=187)
 
 def text_editor():
     for widget in main.winfo_children():
@@ -109,7 +113,7 @@ def browser():
     button1.place(x=755, y=15, width=85, height=50)
 
     entry = tk.Entry(master=main)
-    entry.config(bg="#fff", fg="#000")
+    entry.config(bg=colors[2], fg="#000")
     entry.place(x=92, y=24, width=511, height=39)
 
     button2 = tk.Button(master=main, text="Button")
