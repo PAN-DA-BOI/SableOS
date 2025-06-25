@@ -134,25 +134,42 @@ def meshtastic():
     button1.place(x=824, y=13, width=141, height=49)
 
 def create_main_menu():
-    button = tk.Button(master=main, text="Text Editor", command=text_editor)
-    button.config(bg=colors[1], fg="#000")
+    # Load images
+    print("starting photos")
+    text_editor_icon = tk.PhotoImage(file="icons/texteditoricon.png")
+    file_viewer_icon = tk.PhotoImage(file="icons/foldericon.png")
+    meshtastic_icon = tk.PhotoImage(file="icons/meshtasticicon.png")
+    browser_icon = tk.PhotoImage(file="icons/browsericon.png")
+    settings_icon = tk.PhotoImage(file="icons/gearicon.png")
+    print("photos loaded")
+    
+    print("starting buttons")
+    # Create buttons with images
+    button = tk.Button(master=main, image=text_editor_icon, command=text_editor)
+    button.config(bg=colors[1])
     button.place(x=32, y=60, width=200, height=200)
 
-    button1 = tk.Button(master=main, text="File viewer", command=file_viewer)
-    button1.config(bg=colors[1], fg="#000")
+    button1 = tk.Button(master=main, image=file_viewer_icon, command=file_viewer)
+    button1.config(bg=colors[1])
     button1.place(x=252, y=60, width=200, height=200)
 
-    button2 = tk.Button(master=main, text="Meshtastic", command=meshtastic)
-    button2.config(bg=colors[1], fg="#000")
+    button2 = tk.Button(master=main, image=meshtastic_icon, command=meshtastic)
+    button2.config(bg=colors[1])
     button2.place(x=472, y=60, width=200, height=200)
 
-    button3 = tk.Button(master=main, text="Browser", command=lambda: browser())
-    button3.config(bg=colors[1], fg="#000")
+    button3 = tk.Button(master=main, image=browser_icon, command=lambda: browser())
+    button3.config(bg=colors[1])
     button3.place(x=692, y=60, width=200, height=200)
 
-    button4 = tk.Button(master=main, text="settings", command=settings)
-    button4.config(bg=colors[1], fg="#000")
+    button4 = tk.Button(master=main, image=settings_icon, command=settings)
+    button4.config(bg=colors[1])
     button4.place(x=32, y=330, width=200, height=200)
+    print("buttons done")
+    # Keep a reference to the images to prevent garbage collection
+    buttons = [button, button1, button2, button3, button4]
+    for btn in buttons:
+        btn.image = [text_editor_icon, file_viewer_icon, meshtastic_icon, browser_icon, settings_icon]
+
 
 create_main_menu()
 main.mainloop()
