@@ -14,14 +14,55 @@ def show_main_menu():
     for widget in main.winfo_children():
         widget.destroy()
     create_main_menu()
+def todo_list():
+    for widget in main.winfo_children():
+        widget.destroy()
+
+    # Create a Listbox for the todo items
+    todo_listbox = tk.Listbox(main)
+    todo_listbox.config(bg=colors[2], fg="#000")
+    todo_listbox.place(x=7, y=112, width=1000, height=460)
+
+    # Create an Entry widget for new todo items
+    entry = tk.Entry(main)
+    entry.config(bg=colors[2], fg="#000")
+    entry.place(x=43, y=49, width=300, height=40)
+
+    # Function to add a new todo item
+    def add_todo():
+        new_todo = entry.get()
+        if new_todo:
+            todo_listbox.insert(tk.END, new_todo)
+            entry.delete(0, tk.END)
+
+    # Function to delete the selected todo item
+    def delete_todo():
+        try:
+            index = todo_listbox.curselection()
+            todo_listbox.delete(index)
+        except:
+            pass
+
+    # Create buttons for adding, deleting, and going back
+    add_button = tk.Button(main, text="Add Todo", command=add_todo)
+    add_button.config(bg=colors[1], fg="#000")
+    add_button.place(x=810, y=10, width=200, height=50)
+
+    delete_button = tk.Button(main, text="Delete Todo", command=delete_todo)
+    delete_button.config(bg=colors[1], fg="#000")
+    delete_button.place(x=810, y=70, width=200, height=50)
+
+    back_button = tk.Button(main, text="Back", command=show_main_menu)
+    back_button.config(bg=colors[1], fg="#000")
+    back_button.place(x=595, y=10, width=200, height=100)
 
 def text_editor():
     for widget in main.winfo_children():
         widget.destroy()
 
-    entry = tk.Entry(master=main)
-    entry.config(bg=colors[2], fg="#000")
-    entry.place(x=7, y=112, width=1000, height=460)
+    Text = tk.Text(master=main)
+    Text.config(bg=colors[2], fg="#000")
+    Text.place(x=7, y=112, width=1000, height=460)
 
     button = tk.Button(master=main, text="Save")
     button.config(bg=colors[1], fg="#000")
@@ -135,40 +176,39 @@ def meshtastic():
 
 def create_main_menu():
     # Load images
-    print("starting photos")
     text_editor_icon = tk.PhotoImage(file="icons/texteditoricon.png")
     file_viewer_icon = tk.PhotoImage(file="icons/foldericon.png")
     meshtastic_icon = tk.PhotoImage(file="icons/meshtasticicon.png")
     browser_icon = tk.PhotoImage(file="icons/browsericon.png")
     settings_icon = tk.PhotoImage(file="icons/gearicon.png")
-    print("photos loaded")
-    
-    print("starting buttons")
+    todolist_icon = tk.PhotoImage(file="icons/todolisticon.png")
     # Create buttons with images
     button = tk.Button(master=main, image=text_editor_icon, command=text_editor)
     button.config(bg=colors[1])
-    button.place(x=32, y=60, width=200, height=200)
+    button.place(x=44, y=60, width=200, height=200)
 
     button1 = tk.Button(master=main, image=file_viewer_icon, command=file_viewer)
     button1.config(bg=colors[1])
-    button1.place(x=252, y=60, width=200, height=200)
+    button1.place(x=288, y=60, width=200, height=200)
 
     button2 = tk.Button(master=main, image=meshtastic_icon, command=meshtastic)
     button2.config(bg=colors[1])
-    button2.place(x=472, y=60, width=200, height=200)
+    button2.place(x=532, y=60, width=200, height=200)
 
     button3 = tk.Button(master=main, image=browser_icon, command=lambda: browser())
     button3.config(bg=colors[1])
-    button3.place(x=692, y=60, width=200, height=200)
+    button3.place(x=776, y=60, width=200, height=200)
 
     button4 = tk.Button(master=main, image=settings_icon, command=settings)
     button4.config(bg=colors[1])
-    button4.place(x=32, y=330, width=200, height=200)
-    print("buttons done")
-    # Keep a reference to the images to prevent garbage collection
-    buttons = [button, button1, button2, button3, button4]
+    button4.place(x=44, y=330, width=200, height=200)
+    
+    button5 = tk.Button(master=main, image=todolist_icon, command=todo_list)
+    button5.config(bg=colors[1])
+    button5.place(x=288, y=330, width=200, height=200)
+    buttons = [button, button1, button2, button3, button4, button5]
     for btn in buttons:
-        btn.image = [text_editor_icon, file_viewer_icon, meshtastic_icon, browser_icon, settings_icon]
+        btn.image = [text_editor_icon, file_viewer_icon, meshtastic_icon, browser_icon, settings_icon, todolist_icon]
 
 
 create_main_menu()
