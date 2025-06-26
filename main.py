@@ -1,4 +1,3 @@
-import os
 from PIL import Image, ImageTk
 import tkinter as tk
 import json
@@ -6,7 +5,7 @@ from tkinter import ttk
 import tkinterweb
 from support import read_todo_file, write_subject_to_file, write_task_to_file, create_checklist, add_daily_tasks_to_file, remove_task_from_file
 colors = ["#1a1f16", "#1e3f20", "#345830", "#4a7856", "#94ecbe"]
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 main = tk.Tk()
 main.title("SableOS")
