@@ -1,6 +1,8 @@
 import os
 from PIL import Image, ImageTk
 import tkinter as tk
+import json
+from tkinter import ttk
 import tkinterweb
 from support import read_todo_file, write_subject_to_file, write_task_to_file, create_checklist, add_daily_tasks_to_file, remove_task_from_file
 colors = ["#1a1f16", "#1e3f20", "#345830", "#4a7856", "#94ecbe"]
@@ -10,6 +12,16 @@ main = tk.Tk()
 main.title("SableOS")
 main.config(bg=colors[0])
 main.geometry("1024x600")
+def load_palettes():
+    palettes = {}
+    palette_dir = "coolors"
+    for filename in os.listdir(palette_dir):
+        if filename.endswith(".coolor"):
+            with open(os.path.join(palette_dir, filename), 'r') as file:
+                palette = json.load(file)
+                palette_name = os.path.splitext(filename)[0]
+                palettes[palette_name] = palette
+    return palettes
 def save_file():
     # Get the file name from entry1
     file_name = entry1.get()
@@ -160,7 +172,7 @@ def text_editor():
     entry1 = tk.Entry(master=main)
     entry1.config(bg=colors[2], fg="#000")
     entry1.place(x=43, y=49, width=300, height=40)
-def file_viewer():
+def file_viewer(directory="."):
     for widget in main.winfo_children():
         widget.destroy()
 
@@ -172,16 +184,13 @@ def file_viewer():
     button.config(bg=colors[1], fg="#000")
     button.place(x=783, y=7, width=141, height=68)
 
-    label = tk.Label(master=main, text="File Viewer")
+    label = tk.Label(master=main, text=f"Viewing: {directory}")
     label.config(bg=colors[1], fg="#000")
     label.place(x=122, y=29, width=518, height=45)
 
     # Load icons
     folder_icon = ImageTk.PhotoImage(Image.open("icons/foldericon.png").resize((50, 50)))
     file_icon = ImageTk.PhotoImage(Image.open("icons/fileicon.png").resize((50, 50)))
-
-    # Example directory to view files and folders
-    directory = "."  # You can change this to any directory you want to view
 
     # Iterate over the directory contents
     for index, item in enumerate(os.listdir(directory)):
@@ -196,11 +205,18 @@ def file_viewer():
         # Display icon
         icon_label = tk.Label(item_frame, image=folder_icon if is_directory else file_icon, bg=colors[2])
         icon_label.image = folder_icon if is_directory else file_icon  # Keep a reference
+
+        # Bind the click event to folder icons
+        if is_directory:
+            icon_label.bind("<Button-1>", lambda e, path=item_path: on_folder_click(path))
+
         icon_label.pack()
 
         # Display name
         name_label = tk.Label(item_frame, text=item, bg=colors[2], fg="#000")
         name_label.pack()
+def on_folder_click(folder_path):
+    file_viewer(directory=folder_path)
 def browser():
     for widget in main.winfo_children():
         widget.destroy()
@@ -231,55 +247,96 @@ def browser():
 def settings():
     for widget in main.winfo_children():
         widget.destroy()
-    
-    frame = tk.Frame(master=main)
-    frame.config(bg=colors[2])
-    frame.place(x=46, y=114, width=206, height=359)
 
-    radio_button_var = tk.IntVar()
+    palettes = load_palettes()
 
-    radio_button_0 = tk.Radiobutton(master=frame, variable=radio_button_var, text="Option 1")
-    radio_button_0.config(bg=colors[1], fg="#000", value=0)
-    radio_button_0.place(x=38, y=24, width=120, height=30)
+    # Create a scrollable frame
+    canvas = tk.Canvas(main, bg=colors[2])
+    scrollbar = ttk.Scrollbar(main, orient="vertical", command=canvas.yview)
+    scrollable_frame = ttk.Frame(canvas, style="Background.TFrame")
 
-    radio_button_1 = tk.Radiobutton(master=frame, variable=radio_button_var, text="Option 2")
-    radio_button_1.config(bg=colors[1], fg="#000", value=1)
-    radio_button_1.place(x=41, y=66, width=120, height=30)
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(
+            scrollregion=canvas.bbox("all")
+        )
+    )
 
-    button = tk.Button(master=main, text="New Palette")
-    button.config(bg=colors[1], fg="#000")
-    button.place(x=55, y=500, width=104, height=65)
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
 
-    button1 = tk.Button(master=main, text="Save")
-    button1.config(bg=colors[1], fg="#000")
+    canvas.place(x=46, y=114, width=800, height=359)
+    scrollbar.place(x=846, y=114, height=359)
+
+    radio_button_var = tk.StringVar(value=json.dumps(colors))
+
+    for idx, (name, palette) in enumerate(palettes.items()):
+        row, col = divmod(idx, 4)
+        radio_button = tk.Radiobutton(
+            master=scrollable_frame,
+            variable=radio_button_var,
+            text=name,
+            value=json.dumps(palette),
+            bg=colors[1],
+            fg="#000"
+        )
+        radio_button.grid(row=row, column=col, padx=10, pady=10, sticky="w")
+
+    def save_settings():
+        global colors
+        selected_palette = json.loads(radio_button_var.get())
+        colors = selected_palette
+        main.config(bg=colors[1])  # Update the root window background
+        settings()  # Reload settings to apply new colors
+
+    button1 = tk.Button(master=main, text="Save", command=save_settings, bg=colors[1], fg="#000")
     button1.place(x=173, y=500, width=80, height=65)
 
-    label = tk.Label(master=main, text="Palettes")
-    label.config(bg=colors[1], fg="#000")
-    label.place(x=50, y=51, width=200,height=55)
+    label = tk.Label(master=main, text="Palettes", bg=colors[1], fg="#000")
+    label.place(x=50, y=51, width=200, height=55)
 
-    button = tk.Button(master=main, text="Back", command=show_main_menu)
-    button.config(bg=colors[1], fg="#000")
+    button = tk.Button(master=main, text="Back", command=show_main_menu, bg=colors[1], fg="#000")
     button.place(x=860, y=15, width=85, height=50)
+def on_message_received(message):
+    messages_text.insert(tk.END, f"Received: {message['text']}\n")
+
+def send_message():
+    message = entry.get()
+    if message:
+        interface.sendText(message, destinationId=None, wantResponse=False, wantAck=False)
+        messages_text.insert(tk.END, f"Sent: {message}\n")
+        entry.delete(0, tk.END)
+
 def meshtastic():
     for widget in main.winfo_children():
         widget.destroy()
 
-    messages = tk.Frame(master=main)
-    messages.config(bg=colors[2])
-    messages.place(x=25, y=73, width=950, height=444)
+    global messages_text, entry, interface
 
-    button = tk.Button(master=main, text="Send")
-    button.config(bg=colors[1], fg="#000")
+    messages_frame = tk.Frame(master=main)
+    messages_frame.config(bg=colors[2])
+    messages_frame.place(x=25, y=73, width=950, height=444)
+
+    messages_text = tk.Text(messages_frame, wrap=tk.WORD, bg=colors[2], fg="#000")
+    messages_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    scrollbar = tk.Scrollbar(messages_frame, command=messages_text.yview)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    messages_text.config(yscrollcommand=scrollbar.set)
+
+    button = tk.Button(master=main, text="Send", command=send_message, bg=colors[1], fg="#000")
     button.place(x=835, y=522, height=48)
 
     entry = tk.Entry(master=main)
     entry.config(bg=colors[2], fg="#000")
     entry.place(x=35, y=532, width=780, height=31)
 
-    button1 = tk.Button(master=main, text="Back", command=show_main_menu)
-    button1.config(bg=colors[1], fg="#000")
+    button1 = tk.Button(master=main, text="Back", command=show_main_menu, bg=colors[1], fg="#000")
     button1.place(x=824, y=13, width=141, height=49)
+
+    # Initialize Meshtastic interface
+    interface = serial_interface.SerialInterface()
+    pub.subscribe(on_message_received, "meshtastic.receive.text")
 def create_main_menu():
     # Load images
     text_editor_icon = tk.PhotoImage(file="icons/texteditoricon.png")
