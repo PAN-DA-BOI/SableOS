@@ -1,7 +1,7 @@
 # SableOS
 python OS for my cyberdeck
 
-Some basic Git commands are:
+commands to get started are as follows:
 ```
 sudo apt update
 sudo apt upgrade
