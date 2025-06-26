@@ -11,13 +11,13 @@ def read_todo_file(file_path):
                 line = line.strip()
                 if line:
                     try:
-                        subject, task = line.split(',')
-                        subject = subject.strip().strip('"')
-                        task = task.strip().strip('"')
-
-                        if subject not in subjects:
-                            subjects[subject] = []
-                        subjects[subject].append(task)
+                        # Split the line into parts and clean them
+                        parts = [part.strip().strip('"') for part in line.split('"') if part.strip()]
+                        if len(parts) >= 2:
+                            subject, task = parts[0], parts[1]
+                            if subject not in subjects:
+                                subjects[subject] = []
+                            subjects[subject].append(task)
                     except ValueError as e:
                         print(f"Error parsing line: {line}. Error: {e}")
     except FileNotFoundError:
@@ -29,7 +29,6 @@ def read_todo_file(file_path):
 def write_subject_to_file(file_path, subject):
     try:
         with open(file_path, 'a', encoding='utf-8') as file:
-            # Just write the subject without a task
             file.write(f'"{subject}",""\n')
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred while writing to the file: {e}")
@@ -41,12 +40,12 @@ def write_task_to_file(file_path, subject, task):
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred while writing to the file: {e}")
 
-def create_checklist(main, subjects):
-    y_offset = 74
+def create_checklist(canvas, subjects):
+    y_offset = 10
     for subject, tasks in subjects.items():
         frame_height = 40 + len(tasks) * 30
-        frame = tk.Frame(master=main, bg=colors[2], height=frame_height)
-        frame.place(x=11, y=y_offset, width=350, height=frame_height)
+        frame = tk.Frame(master=canvas, bg=colors[2], height=frame_height)
+        canvas.create_window((10, y_offset), anchor="nw", window=frame, width=340, height=frame_height)
 
         label = tk.Label(master=frame, text=subject, bg=colors[2], fg="#000", font=('Helvetica', 12, 'bold'))
         label.place(x=10, y=10)
@@ -58,7 +57,10 @@ def create_checklist(main, subjects):
 
         y_offset += frame_height + 10
 
-def add_task(file_path, subjects, subject_var, task_entry, option_menu):
+    canvas.update_idletasks()
+    canvas.config(scrollregion=canvas.bbox("all"))
+
+def add_task(file_path, subjects, subject_var, task_entry, option_menu, canvas):
     subject = subject_var.get()
     task = task_entry.get()
 
@@ -69,24 +71,29 @@ def add_task(file_path, subjects, subject_var, task_entry, option_menu):
             subjects[subject] = [task]
 
         write_task_to_file(file_path, subject, task)
-        option_menu['menu'].delete(0, 'end')
-
-        for subject in subjects:
-            option_menu['menu'].add_command(label=subject, command=tk._setit(subject_var, subject))
-
         task_entry.delete(0, tk.END)
+        canvas.delete("all")
+        create_checklist(canvas, subjects)
     else:
         messagebox.showwarning("Input error", "Subject and task cannot be empty.")
 
-def add_subject(file_path, subjects, subject_entry, option_menu):
+def add_subject(file_path, subjects, subject_entry, option_menu, subject_var, canvas):
     subject = subject_entry.get()
 
     if subject:
         if subject not in subjects:
             subjects[subject] = []
             write_subject_to_file(file_path, subject)
-            option_menu['menu'].add_command(label=subject, command=tk._setit(option_menu.cget("textvariable"), subject))
             subject_entry.delete(0, tk.END)
+
+            # Update the option menu
+            menu = option_menu["menu"]
+            menu.delete(0, "end")
+            for subj in subjects:
+                menu.add_command(label=subj, command=tk._setit(subject_var, subj))
+
+            canvas.delete("all")
+            create_checklist(canvas, subjects)
         else:
             messagebox.showwarning("Input error", "Subject already exists.")
     else:
@@ -101,8 +108,15 @@ def main():
     file_path = r"C:\Users\Brody Evans\Documents\GitHub\SableOS\todolist.opfile"
     subjects = read_todo_file(file_path)
 
+    canvas = tk.Canvas(main, bg=colors[2], width=370, height=500)
+    canvas.place(x=10, y=74)
+
+    scrollbar = tk.Scrollbar(main, orient="vertical", command=canvas.yview)
+    scrollbar.place(x=370, y=74, height=500)
+    canvas.configure(yscrollcommand=scrollbar.set)
+
     if subjects:
-        create_checklist(main, subjects)
+        create_checklist(canvas, subjects)
     else:
         print("No subjects found or error reading the file.")
 
@@ -120,7 +134,7 @@ def main():
     entry1.place(x=178, y=23, width=121, height=40)
 
     button1 = tk.Button(master=frame1, text="Add Task", bg=colors[1], fg="#000",
-                       command=lambda: add_task(file_path, subjects, subject_var, entry1, option_menu))
+                       command=lambda: add_task(file_path, subjects, subject_var, entry1, option_menu, canvas))
     button1.place(x=228, y=168, width=115, height=80)
 
     frame2 = tk.Frame(master=main, bg=colors[2])
@@ -130,7 +144,7 @@ def main():
     entry2.place(x=41, y=61, width=121, height=42)
 
     button2 = tk.Button(master=frame2, text="Add Subject", bg=colors[1], fg="#000",
-                       command=lambda: add_subject(file_path, subjects, entry2, option_menu))
+                       command=lambda: add_subject(file_path, subjects, entry2, option_menu, subject_var, canvas))
     button2.place(x=225, y=35, width=115, height=80)
 
     button3 = tk.Button(master=main, text="Back", bg=colors[1], fg="#000")

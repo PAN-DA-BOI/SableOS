@@ -1,7 +1,7 @@
 import os
 import tkinter as tk
 import tkinterweb
-
+from support import read_todo_file, write_subject_to_file, write_task_to_file, create_checklist
 colors = ["#1a1f16", "#1e3f20", "#345830", "#4a7856", "#94ecbe"]
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -10,6 +10,50 @@ main.title("SableOS")
 main.config(bg=colors[0])
 main.geometry("1024x600")
 
+def add_task(file_path, subjects, subject_var, task_entry, option_menu, canvas):
+    subject = subject_var.get()
+    task = task_entry.get()
+
+    if subject and task:
+        if subject in subjects:
+            subjects[subject].append(task)
+        else:
+            subjects[subject] = [task]
+
+        try:
+            write_task_to_file(file_path, subject, task)
+            task_entry.delete(0, tk.END)
+            canvas.delete("all")
+            create_checklist(canvas, subjects, colors)
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+    else:
+        messagebox.showwarning("Input error", "Subject and task cannot be empty.")
+def add_subject(file_path, subjects, subject_entry, option_menu, subject_var, canvas):
+    subject = subject_entry.get()
+
+    if subject:
+        if subject not in subjects:
+            subjects[subject] = []
+            try:
+                write_subject_to_file(file_path, subject)
+                subject_entry.delete(0, tk.END)
+
+                menu = option_menu["menu"]
+                menu.delete(0, "end")
+                for subj in subjects:
+                    menu.add_command(label=subj, command=tk._setit(subject_var, subj))
+
+                canvas.delete("all")
+                create_checklist(canvas, subjects, colors)
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+        else:
+            messagebox.showwarning("Input error", "Subject already exists.")
+    else:
+        messagebox.showwarning("Input error", "Subject cannot be empty.")
+
+
 def show_main_menu():
     for widget in main.winfo_children():
         widget.destroy()
@@ -17,48 +61,54 @@ def show_main_menu():
 def todo_list():
     for widget in main.winfo_children():
         widget.destroy()
+    file_path = r"todolist.opfile"
+    subjects = read_todo_file(file_path)
 
-    frame = tk.Frame(master=main)
-    frame.config(bg=colors[2])
-    frame.place(x=11, y=80, width=841, height=466)
+    canvas = tk.Canvas(main, bg=colors[2], width=370, height=500)
+    canvas.place(x=10, y=74)
 
-    check_box = tk.Checkbutton(master=frame, text="Checkbox")
-    check_box.config(bg=colors[1], fg="#000")
+    scrollbar = tk.Scrollbar(main, orient="vertical", command=canvas.yview)
+    scrollbar.place(x=370, y=74, height=500)
+    canvas.configure(yscrollcommand=scrollbar.set)
 
+    if subjects:
+        create_checklist(canvas, subjects, colors)
+    else:
+        print("No subjects found or error reading the file.")
 
+    frame1 = tk.Frame(master=main, bg=colors[2])
+    frame1.place(x=415, y=292, width=370, height=270)
 
-    check_box.select()
-    check_box.place(x=32, y=39, width=120, height=30)
+    subject_var = tk.StringVar(main)
+    subject_var.set(next(iter(subjects)) if subjects else "")
 
-    entry = tk.Entry(master=main)
-    entry.config(bg=colors[2], fg="#000")
-    entry.place(x=867, y=29, width=121, height=40)
-
-    button = tk.Button(master=main, text="Add concept")
-    button.config(bg=colors[1], fg="#000")
-    button.place(x=870, y=85, width=115, height=80)
-
-    button1 = tk.Button(master=main, text="Daily Routine")
-    button1.config(bg=colors[1], fg="#000")
-    button1.place(x=870, y=394, width=115, height=80)
-
-    button2 = tk.Button(master=main, text="Back")
-    button2.config(bg=colors[1], fg="#000")
-    button2.place(x=870, y=496, width=115, height=80)
-
-    button3 = tk.Button(master=main, text="add task")
-    button3.config(bg=colors[1], fg="#000")
-    button3.place(x=870, y=303, width=115, height=80)
-
-    entry1 = tk.Entry(master=main)
-    entry1.config(bg=colors[2], fg="#000")
-    entry1.place(x=867, y=245, width=121, height=40)
-
-    option_menu_options = ["option 1"]
-    option_menu_var = tk.StringVar(value="Select option")
-    option_menu = tk.OptionMenu(main, option_menu_var, *option_menu_options)
+    option_menu = tk.OptionMenu(frame1, subject_var, *subjects)
     option_menu.config(bg=colors[1], fg="#000")
-    option_menu.place(x=874, y=187)
+    option_menu.place(x=21, y=16)
+
+    entry1 = tk.Entry(master=frame1, bg=colors[2], fg="#000")
+    entry1.place(x=178, y=23, width=121, height=40)
+
+    button1 = tk.Button(master=frame1, text="Add Task", bg=colors[1], fg="#000",
+                       command=lambda: add_task(file_path, subjects, subject_var, entry1, option_menu, canvas))
+    button1.place(x=228, y=168, width=115, height=80)
+
+    frame2 = tk.Frame(master=main, bg=colors[2])
+    frame2.place(x=409, y=99, width=370, height=170)
+
+    entry2 = tk.Entry(master=frame2, bg=colors[2], fg="#000")
+    entry2.place(x=41, y=61, width=121, height=42)
+
+    button2 = tk.Button(master=frame2, text="Add Subject", bg=colors[1], fg="#000",
+                       command=lambda: add_subject(file_path, subjects, entry2, option_menu, subject_var, canvas))
+    button2.place(x=225, y=35, width=115, height=80)
+
+    button3 = tk.Button(master=main, text="Back", bg=colors[1], fg="#000")
+    button3.place(x=870, y=195, width=115, height=80)
+
+    button = tk.Button(master=main, text="Daily Routine", bg=colors[1], fg="#000")
+    button.place(x=870, y=394, width=115, height=80)
+
 
 def text_editor():
     for widget in main.winfo_children():
