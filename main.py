@@ -1,6 +1,7 @@
 from PIL import Image, ImageTk
 import tkinter as tk
 import json
+import os
 from tkinter import ttk
 import tkinterweb
 from support import read_todo_file, write_subject_to_file, write_task_to_file, create_checklist, add_daily_tasks_to_file, remove_task_from_file
@@ -121,7 +122,6 @@ def todo_list():
     else:
         subject_var.set("")
 
-    # Ensure subjects is a list of strings
     subject_list = list(subjects.keys()) if subjects else [""]
     option_menu = tk.OptionMenu(frame1, subject_var, *subject_list)
     option_menu.config(bg=colors[1], fg="#000")
@@ -205,7 +205,6 @@ def file_viewer(directory="."):
         icon_label = tk.Label(item_frame, image=folder_icon if is_directory else file_icon, bg=colors[2])
         icon_label.image = folder_icon if is_directory else file_icon  # Keep a reference
 
-        # Bind the click event to folder icons
         if is_directory:
             icon_label.bind("<Button-1>", lambda e, path=item_path: on_folder_click(path))
 
