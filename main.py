@@ -38,7 +38,7 @@ def save_file():
     try:
         with open(file_name, 'w') as file:
             file.write(content)
-        print.showinfo("Success", "File saved successfully!")
+        print ("Success", "File saved successfully!")
     except Exception as e:
         print("Error", f"An error occurred while saving the file: {e}")
 def add_task(file_path, subjects, subject_var, task_entry, option_menu, canvas):
